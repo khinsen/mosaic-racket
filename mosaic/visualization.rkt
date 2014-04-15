@@ -1,9 +1,11 @@
 #lang racket
 
 (provide sites-as-dots
+         sites-as-colored-circles
          sites-as-colored-spheres)
 
 (require (prefix-in interface:  "interface.rkt")
+         math
          math/array
          racket/generator
          plot
@@ -167,7 +169,7 @@
 ; A slightly fancier renderer: each site is drawn as a circle
 ; whose color and radius reflects the chemical element.
 
-(define (sites-as-colored-spheres configuration)
+(define (sites-as-colored-circles configuration)
   (let ([universe (interface:configuration.universe configuration)]
         [positions (interface:configuration.positions configuration)])
     (~for/list ([(⋈ element sites) (sites-by-element universe)])
@@ -178,3 +180,25 @@
                 #:sym 'fullcircle
                 #:size (* 200. (atom-radius element))
                 #:color (atom-color element)))))
+
+; Even fancier: a 3D sphere for each atom
+
+(define (sphere3d x0 y0 z0 r color)
+   (isosurface3d (λ (x y z) (sqrt (+ (sqr (- x0 x))
+                                     (sqr (- y0 y))
+                                     (sqr (- z0 z)))))
+                 r (- x0 r) (+ x0 r) (- y0 r) (+ y0 r) (- z0 r) (+ z0 r)
+                 #:line-style 'transparent
+                 #:color color))
+
+(define (sites-as-colored-spheres configuration)
+  (let ([universe (interface:configuration.universe configuration)]
+        [positions (interface:configuration.positions configuration)])
+    (~for/list ([($list a ai si) (interface:in-sites-with-indices universe)])
+               (let ([element (interface:atom.name a)]
+                     [x (array-ref positions (vector si 0))]
+                     [y (array-ref positions (vector si 1))]
+                     [z (array-ref positions (vector si 2))])
+                 (sphere3d x y z
+                           (atom-radius element)
+                           (atom-color element))))))
