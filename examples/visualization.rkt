@@ -20,4 +20,5 @@
 
 ; (plot3d (sites-as-dots conf))
 
-(plot3d (sites-as-colored-spheres conf) #:width 800 #:height 800)
+(parameterize ([plot3d-samples 30])
+  (plot3d (sites-as-colored-spheres conf) #:width 800 #:height 800))
